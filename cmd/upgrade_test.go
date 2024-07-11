@@ -19,7 +19,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 )
 
-func TestCheckCmd(t *testing.T) {
+func TestUpgradeCmd(t *testing.T) {
 	// Create a temporary directory for testing
 	tempDir, err := os.MkdirTemp("", "test")
 	if err != nil {
@@ -27,7 +27,7 @@ func TestCheckCmd(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	// Test case 1: Terraform not initialized
+	// Test case 1: Terraform not initialized or mod lock file missing
 	t.Run("TerraformNotInitialized", func(t *testing.T) {
 		// Create directory for this test
 		testDir := tempDir + "/terraformnotinitialized"
@@ -40,7 +40,7 @@ func TestCheckCmd(t *testing.T) {
 		actual := new(bytes.Buffer)
 		rootCmd.SetOut(actual)
 		rootCmd.SetErr(actual)
-		rootCmd.SetArgs([]string{"check", "--source", testDir})
+		rootCmd.SetArgs([]string{"upgrade", "--source", testDir})
 		rootCmd.Execute()
 
 		expected := ""
@@ -49,7 +49,7 @@ func TestCheckCmd(t *testing.T) {
 
 }
 
-func TestCheck(t *testing.T) {
+func TestUpgrade(t *testing.T) {
 	// Create a temporary directory for testing
 	tempDir, err := os.MkdirTemp("", "test")
 	if err != nil {
@@ -105,11 +105,10 @@ func TestCheck(t *testing.T) {
 		// Create the mod lock file
 		os.WriteFile(testDir + "/" + modFileName, bytes, os.ModePerm)
 
-		// Run the check command
-		checkErr := check(testDir + "/")
+		// Run the upgrade command with autoapprove
+		upgradeErr := upgrade(testDir + "/", true)
 
-		assert.Contains(t, checkErr.Error(), "non matching or missing modules found in the configuration")
-
+		assert.Nil(t, upgradeErr)
 
 	})
 
@@ -161,10 +160,10 @@ func TestCheck(t *testing.T) {
 		// Create the mod lock file
 		os.WriteFile(testDir + "/" + modFileName, bytes, os.ModePerm)
 
-		// Run the check command
-		checkErr := check(testDir + "/")
+		// Run the upgrade command
+		upgradeErr := upgrade(testDir + "/", true)
 
-		assert.Contains(t, checkErr.Error(), "non matching or missing modules found in the configuration")
+		assert.Nil(t, upgradeErr)
 
 	})
 
@@ -194,10 +193,10 @@ func TestCheck(t *testing.T) {
 		defer modFile.Close()
 		modFile.WriteString(`{"Modules": {}}`)
 
-		// Run the check command
-		checkErr := check(testDir + "/")
+		// Run the upgrade command
+		upgradeErr := upgrade(testDir + "/", true)
 
-		assert.Contains(t, checkErr.Error(), "non matching or missing modules found in the configuration")
+		assert.Nil(t, upgradeErr)
 
 	})
 
@@ -226,10 +225,10 @@ func TestCheck(t *testing.T) {
 		rootCmd.SetArgs([]string{"init", "--source", testDir})
 		rootCmd.Execute()
 
-		// Run the check command
-		checkErr := check(testDir + "/")
+		// Run the upgrade command
+		upgradeErr := upgrade(testDir + "/", true)
 
-		assert.Nil(t, checkErr)
+		assert.Nil(t, upgradeErr)
 
 	})
 }
