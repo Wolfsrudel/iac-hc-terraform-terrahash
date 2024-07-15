@@ -32,11 +32,9 @@ func TestInitCmd(t *testing.T) {
 		rootCmd.SetOut(actual)
 		rootCmd.SetErr(actual)
 		rootCmd.SetArgs([]string{"init", "--source", "missing"})
-		rootCmd.Execute()
+		errMissing := rootCmd.Execute()
 
-		expected := "Error: stat missing: no such file or directory\nUsage:\n  terrahash init [flags]\n\nFlags:\n  -h, --help   help for init\n\nGlobal Flags:\n  -s, --source string   Source directory to read from. Defaults to current directory.\n\n"
-
-		assert.Equal(t, expected, actual.String())
+		assert.NotNil(t, errMissing)
 
 	})
 

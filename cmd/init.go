@@ -60,7 +60,7 @@ var initCmd = &cobra.Command{
 		}
 
 		slog.Debug("get the modules used by the configuration")
-		sourcedMods, err := processModules(path)
+		sourcedMods, err := processModules(path, IgnoreLocal)
 		if err != nil {
 			return fmt.Errorf("error processing modules %v", err)
 		}

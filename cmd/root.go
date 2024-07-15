@@ -30,6 +30,7 @@ var rootCmd = &cobra.Command{
 }
 
 var Source string
+var IgnoreLocal bool
 
 type moduleEntry struct {
 	Key     string `json:"Key"`
@@ -88,6 +89,7 @@ func init() {
 
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.terrahash.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&Source, "source", "s", "", "Source directory to read from. Defaults to current directory.")
+	rootCmd.PersistentFlags().BoolVarP(&IgnoreLocal,"ignore-local", "i", false, "Ignore local modules")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -109,7 +111,7 @@ func terraformInitialized(path string) (string, bool) {
 	return "terraform has been initialized", true
 }
 
-func processModules(path string) (modules, error) {
+func processModules(path string, skipLocal bool) (modules, error) {
 	slog.Debug("get the modules used by the configuration")
 	    var mods modulesFile
 		var sourcedMods modules
@@ -129,15 +131,19 @@ func processModules(path string) (modules, error) {
 			return sourcedMods, fmt.Errorf("could not decode modules.json: %v", err)
 		}
 
-		// Copy the external modules to sourcedMods
-		slog.Debug("copying the external modules")
+		// Copy the modules to sourcedMods
+		slog.Debug("copying the modules")
 		
 		for _, m := range mods.Modules {
-			// All downloaded modules will reside in the .terraform/modules directory
-			if strings.Split(m.Dir, "/")[0] != ".terraform" {
-				slog.Debug("skipping module: " + m.Key)
+			if m.Dir == "." {
+				slog.Debug("skipping root module")
+			}else if strings.Split(m.Dir, "/")[0] != ".terraform" && skipLocal {
+				slog.Debug("skipping local module: " + m.Key)
 			}else{
 			// Add a hash based on Dir contents
+			// Find all files ending in .tf
+
+			// Generate a hash based on the contents of the file
 				hash, err := hashdir.Make(path+m.Dir, "sha256")
 				if err != nil {
 					return sourcedMods, fmt.Errorf("could not create hash for %v: %v", m.Key, err)

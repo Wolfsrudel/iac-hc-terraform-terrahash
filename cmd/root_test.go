@@ -103,7 +103,7 @@ func TestProcessModules(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		actual, err := processModules(testDir + "/")
+		actual, err := processModules(testDir + "/", true)
 		var expected modules
 		expected.Modules = make(map[string]moduleEntry)
 
@@ -128,7 +128,7 @@ func TestProcessModules(t *testing.T) {
 		// Write invalid JSON structure (expects a Module key with list value)
 		file.WriteString(`{"Modules": {}}`)
 
-		_, modErr := processModules(testDir + "/")
+		_, modErr := processModules(testDir + "/", true)
 
 		assert.ErrorContains(t, modErr, "could not decode modules.json")
 	})
@@ -152,7 +152,7 @@ func TestProcessModules(t *testing.T) {
 
 		terraform.Init(t, terraformOptions)
 
-		_, modErr := processModules(testDir + "/")
+		_, modErr := processModules(testDir + "/", true)
 
 		assert.Nil(t, modErr)
 	})
