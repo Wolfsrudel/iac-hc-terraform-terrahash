@@ -1,5 +1,12 @@
 {
   "Modules": {
+    "internal": {
+      "Key": "internal",
+      "Source": "./modules",
+      "Version": "",
+      "Dir": "modules",
+      "Hash": "9d52071e745600837e438c20f7633fa29e2840527bf2ee8fdfdc28df205b8be6"
+    },
     "label": {
       "Key": "label",
       "Source": "registry.terraform.io/cloudposse/label/null",
