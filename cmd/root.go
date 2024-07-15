@@ -49,6 +49,25 @@ type modulesFile struct {
 
 const modFileName = ".terraform.module.lock.hcl"
 
+const testConfig = `provider "azurerm" {
+			features{}
+		}
+
+		resource "azurerm_resource_group" "test" {
+		  name = "terrahash-test"
+		  location = "East US"
+		}
+
+		module "vnet" {
+		  source  = "Azure/vnet/azurerm"
+		  version = "4.1.0"
+
+		    resource_group_name = azurerm_resource_group.test.name
+		    use_for_each = true
+		    vnet_location = azurerm_resource_group.test.location
+
+		}`
+
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() error {
@@ -151,12 +170,11 @@ func processModFile(path string) (modules, error){
 		}
 		defer moduleFile.Close()
 
-		// Process the modules.json file
 		slog.Debug("processing the mod lock file")
 
 		err = json.NewDecoder(moduleFile).Decode(&mods)
 		if err != nil {
-			return mods, fmt.Errorf("could not decode modules.json: %v", err)
+			return mods, fmt.Errorf("could not decode lock file: %v", err)
 		}
 		return mods, nil
 }
@@ -176,6 +194,10 @@ func setPath(path string) (string, error) {
 		slog.Debug("working path set to current directory: " + setPath)
 		return (setPath + "/"), nil
 	} else {
+		// test to make sure path exists
+		if _, err := os.Stat(path); err != nil {
+			return path, fmt.Errorf(err.Error())
+		}
 		setPath = path
 		slog.Debug("working path set to source directory: " + setPath)
 	}

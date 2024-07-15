@@ -48,7 +48,13 @@ var upgradeCmd = &cobra.Command{
 			return nil
 		}
 
-		// Load the sourced modules
+		return upgrade(path, autoApprove)
+	},
+
+}
+
+func upgrade(path string, autoApprove bool) error {
+        // Load the sourced modules
 		// Get the modules used by the configuration
 		slog.Debug("get the modules used by the configuration")
 		sourcedMods, err := processModules(path)
@@ -56,7 +62,7 @@ var upgradeCmd = &cobra.Command{
 			return fmt.Errorf("error processing modules %v", err)
 		}
 
-		// Load the .terraform.modules.hcl file
+		// Load the module lock file
 		// If the file is not found throw an error
 		lockedMods, err := processModFile(path + modFileName)
 		if err != nil {
@@ -134,7 +140,6 @@ var upgradeCmd = &cobra.Command{
 		fmt.Println("Changes to mod lock file have been made successfully!")
 
 		return nil
-	},
 }
 
 func init() {
